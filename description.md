@@ -28,6 +28,8 @@ This is disabled dy default.
 
 When this option is enabled, the original source file will be removed.
 
+When this option is disabled, the original source will be ignored by all future library scans.
+
 If the file copy process was unsuccessful, then the original source file will be kept regardless of this option being selected or unselected.
 
 ---
@@ -51,6 +53,12 @@ If the file copy process was unsuccessful, then the original source file will be
 ###### Result:
 - **Source file path:** <span style="color:green">`/library/tv/MyShow/MyShow-S01E01-720p.mkv`</span>
 - **Destination file path:** <span style="color:green">`/processed/library/tv/MyShow/MyShow-S01E01-720p.mkv`</span>
+- **Unmanic directory info updated:** <span style="color:orange">`/library/tv/MyShow/.unmanic`</span>
+    ```
+    [mover2]
+    MyShow-S01E01-720p.mkv = Ignoring
+    ```
+    (Ignores file in future scans)
 
 ###### <span style="color:magenta">Move file with relative source path and remove original copy</span>
 **<span style="color:blue">Destination directory</span>**

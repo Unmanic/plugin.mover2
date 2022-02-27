@@ -1,4 +1,7 @@
 
+**<span style="color:#56adda">0.0.5</span>**
+- Ignore files on all future scans if "Remove source files" is not selected
+
 **<span style="color:#56adda">0.0.4</span>**
 - Enabled support for v2 plugin executor
 

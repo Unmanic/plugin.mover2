@@ -23,7 +23,9 @@ import hashlib
 import json
 import logging
 import os
+from configparser import NoSectionError, NoOptionError
 
+from unmanic.libs.directoryinfo import UnmanicDirectoryInfo
 from unmanic.libs.unplugins.settings import PluginSettings
 
 # Configure plugin logger
@@ -112,6 +114,50 @@ def get_file_out(settings, original_source_path, file_out):
     return os.path.join(destination_directory, file_out_basename)
 
 
+def file_marked_as_moved(path):
+    directory_info = UnmanicDirectoryInfo(os.path.dirname(path))
+    try:
+        has_been_moved = directory_info.get('mover2', os.path.basename(path))
+    except NoSectionError as e:
+        has_been_moved = ''
+    except NoOptionError as e:
+        has_been_moved = ''
+    except Exception as e:
+        logger.debug("Unknown exception {}.".format(e))
+        has_been_moved = ''
+
+    if has_been_moved == 'Ignoring':
+        # This file movement already has been attempted and failed
+        return True
+
+    # Default to...
+    return False
+
+
+def on_library_management_file_test(data):
+    """
+    Runner function - enables additional actions during the library management file tests.
+
+    The 'data' object argument includes:
+        path                            - String containing the full path to the file being tested.
+        issues                          - List of currently found issues for not processing the file.
+        add_file_to_pending_tasks       - Boolean, is the file currently marked to be added to the queue for processing.
+
+    :param data:
+    :return:
+
+    """
+    # Get the path to the file
+    abspath = data.get('path')
+
+    if file_marked_as_moved(abspath):
+        # Ensure this file is not added to the pending tasks
+        data['add_file_to_pending_tasks'] = False
+        logger.debug("File '{}' has been previously marked as moved.".format(abspath))
+
+    return data
+
+
 def on_postprocessor_file_movement(data):
     """
     Runner function - configures additional postprocessor file movements during the postprocessor stage of a task.
@@ -166,6 +212,22 @@ def on_postprocessor_file_movement(data):
             'unmanic_destination_file': unmanic_destination_file,
         }
         json.dump(required_data, f, indent=4)
+
+    if not settings.get_setting('remove_source_file'):
+        # Get the original file's absolute path
+        original_source_path = data.get('source_data', {}).get('abspath')
+        if not original_source_path:
+            logger.error("Provided 'source_data' is missing the source file abspath data.")
+            return data
+        if not os.path.exists(original_source_path):
+            logger.error("Original source path could not be found.")
+            return data
+
+        # Mark the source file to be ignored on subsequent scans
+        directory_info = UnmanicDirectoryInfo(os.path.dirname(original_source_path))
+        directory_info.set('mover2', os.path.basename(original_source_path), 'Ignoring')
+        directory_info.save()
+        logger.debug("Ignore on next scan written for '{}'.".format(original_source_path))
 
     return data
 
