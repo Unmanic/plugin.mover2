@@ -153,6 +153,7 @@ def on_library_management_file_test(data):
     """
     # Get the path to the file
     abspath = data.get('path')
+    basename = os.path.basename(abspath)
 
     # Configure settings object (maintain compatibility with v1 plugins)
     if data.get('library_id'):
@@ -164,7 +165,8 @@ def on_library_management_file_test(data):
         # Ensure this file is not added to the pending tasks
         data['add_file_to_pending_tasks'] = False
         logger.debug("File '{}' has been previously marked as moved.".format(abspath))
-    elif settings.get_setting('force_processing_all_files'):
+    elif settings.get_setting('force_processing_all_files') and basename != '.unmanic':
+        # (Never move the .unmanic file)
         # Ensure this file is added to the pending tasks regardless of status of any subsequent tests
         data['add_file_to_pending_tasks'] = True
         logger.debug("Forcing file '{}' to be added to task list.".format(abspath))
