@@ -4,6 +4,11 @@ Based on the original mover plugin written by [R3dC4p](https://github.com/R3dC4p
 
 ### Config description:
 
+#### <span style="color:blue">Force processing of all files</span>
+Create a task for all files tested in the library regardless of needing to be processed by other plugins.
+
+Use this option if you want to create a task to move all files in your library regardless of weather they need to be processed by other plugins or not.
+
 #### <span style="color:blue">Destination directory</span>
 Select the destination directory that you wish to have your files moved to.
 

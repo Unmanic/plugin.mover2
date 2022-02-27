@@ -34,6 +34,7 @@ logger = logging.getLogger("Unmanic.Plugin.mover2")
 
 class Settings(PluginSettings):
     settings = {
+        "force_processing_all_files":   False,
         "destination_directory":        "/library",
         "recreate_directory_structure": True,
         "include_library_structure":    True,
@@ -43,6 +44,9 @@ class Settings(PluginSettings):
     def __init__(self, *args, **kwargs):
         super(Settings, self).__init__(*args, **kwargs)
         self.form_settings = {
+            "force_processing_all_files":   {
+                "label": "Force processing of all files",
+            },
             "destination_directory":        {
                 "label":      "Destination directory",
                 "input_type": "browse_directory",
@@ -150,10 +154,20 @@ def on_library_management_file_test(data):
     # Get the path to the file
     abspath = data.get('path')
 
+    # Configure settings object (maintain compatibility with v1 plugins)
+    if data.get('library_id'):
+        settings = Settings(library_id=data.get('library_id'))
+    else:
+        settings = Settings()
+
     if file_marked_as_moved(abspath):
         # Ensure this file is not added to the pending tasks
         data['add_file_to_pending_tasks'] = False
         logger.debug("File '{}' has been previously marked as moved.".format(abspath))
+    elif settings.get_setting('force_processing_all_files'):
+        # Ensure this file is added to the pending tasks regardless of status of any subsequent tests
+        data['add_file_to_pending_tasks'] = True
+        logger.debug("Forcing file '{}' to be added to task list.".format(abspath))
 
     return data
 
